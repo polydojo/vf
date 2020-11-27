@@ -1,3 +1,5 @@
+import re;
+
 import vf;
 import pytest;
 
@@ -8,6 +10,8 @@ class Subdict (dict): pass;
 eg_subint = Subint(100);
 eg_sublist = Sublist([1, "a", True]);
 eg_subdict = Subdict({"foo": "bar"});
+
+primeIs = lambda n: not any(map(lambda i: n%i==0, range(2, n)));
 
 def test_typeIs ():
     assert vf.typeIs(bool)(True) == True;
@@ -40,6 +44,49 @@ def test_typeIn ():
     assert vf.typeIn(int, dict)({}) == True;
     assert vf.typeIn(int, dict)(eg_subdict) == False;
 
+def test_patternIs ():
+    assert vf.patternIs(r'\d\d-\d\d-\d\d')("02-02-02") == True;
+    assert vf.patternIs(r'Hi (.*)!')("Hi Polydojo!") == True;
+    assert vf.patternIs(r'\w+')("% non-wordy $") == False;
+    assert vf.patternIs(re.compile(r'\w+'))("foo") == True;
+    assert vf.patternIs(re.compile(r'\d+'))("foo") == False;
+
+def test_allOf ():
+    assert vf.allOf(
+        vf.typeIs(int), lambda n: n % 2 == 0,
+        lambda n: 0 < n < 100, lambda n: not primeIs(n),
+    )(10) == True;
+    assert vf.allOf(
+        vf.typeIs(int), lambda n: n % 2 == 0,
+        lambda n: 0 < n < 100, lambda n: primeIs(n),
+    )(10) == False; # as 10 is not prime.
+    assert vf.allOf(
+        vf.typeIs(str), vf.patternIs(r'\w+'),
+        lambda x: len(x) >= 3,
+    )("foo") == True;
+    assert vf.allOf(
+        vf.typeIs(str), vf.patternIs(r'\d+'),
+        lambda x: len(x) >= 3,
+    )("foo") == False;  # As 'foo' doesn't match r'\d+'
+
+def test_anyOf ():
+    assert vf.anyOf(
+        vf.typeIs(str), vf.typeIs(int),
+    )(10) == True;
+    assert vf.anyOf(
+        vf.typeIs(str), vf.typeIs(float), primeIs,
+    )(10) == False;
+    assert vf.anyOf(
+        vf.patternIs(r'\s+'), vf.patternIs(r'\w+'),
+    )("foo") == True;
+
+def test_listOf ():
+    assert vf.listOf(vf.typeIs(str))(["a", "b", "c"]) == True;
+    assert vf.listOf(vf.typeIs(str))("abc") == False;
+    assert vf.listOf(vf.typeIs(str))(tuple("abc")) == False;
+    assert vf.listOf(vf.typeIs(str))([]) == True;
+    assert vf.listOf(vf.typeIs(str), minLen=1)([]) == False;
+    
 def test_dictOf_basicPostSchema ():
     validator1 = vf.dictOf({
         "_id": vf.typeIs(str),

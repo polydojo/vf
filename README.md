@@ -106,7 +106,7 @@ These helpers return type-checking functions, which in-turn return `True` or `Fa
 - `vf.patternIs(pattern)`: Makes `func (s)` for checking `s` against `pattern` via `re.match` or `re.Pattern.match`. (`s` may be a `str` or a compiled `re.Pattern`.)
 - `allOf (*fns)`: Makes `func (x)` for checking `all(fn(x) for fn in fns)`.;
 - `anyOf (*fns)`: Makes `func (x)` for checking `any(fn(x) for fn in fns)`.
-- `listOf (fn)`: Makes `func (li)` for checking `isinstance(li, list)` and `all(fn(x) for x in li)`.
+- `listOf (fn, minLen=0)`: Makes `func (li)` for checking `isinstance(li, list)`, `len(li) >= minLen` and `all(fn(x) for x in li)`.
 
 #### Dict Validation:
 And finally, of course, the dict validation function:

@@ -18,14 +18,22 @@ trademarks, service marks, brand names or logos of Polydojo, Inc.
 import functools;
 import re;
 
-__version__ = "0.0.1";  # Req'd by flit.
+__version__ = "0.0.2";  # Req'd by flit.
+
+############################################################
+# SIMPLE: ##################################################
+############################################################
 
 identity = lambda x: x;
 truthy = lambda x: bool(x);
 falsy = lambda x: not x;
 noneIs = lambda x: x is None;
 
-def typeIs (typ):
+############################################################
+# CHECKER MAKERS: ##########################################
+############################################################
+
+def typeIs (typ):   # <-- TODO: Intro truthy option.
     "Makes `func (x)` for checking `type(x) is typ`.";
     return lambda x: type(x) is typ;
 
@@ -40,9 +48,9 @@ def typeIn (*typs):
 def patternIs (pattern):
     "Makes `func (s)` for checking `s` against `pattern`.";
     if type(pattern) is str:
-        return lambda s: re.match(pattern, s);
+        return lambda s: bool(re.match(pattern, s));
     if type(pattern) is re.Pattern:
-        return lambda s: pattern.match(s);
+        return lambda s: bool(pattern.match(s));
     raise ValueError("Expected `pattern` to be of type "
         "`str` or `re.Pattern`, not: %r" % (pattern,)
     );
@@ -55,9 +63,17 @@ def anyOf (*fns):
     "Makes `func (x)` for checking `any(fn(x) for fn in fns)`.";
     return lambda x: any(map(lambda fn: fn(x), fns));
 
-def listOf (fn):
+def listOf (fn, minLen=0):
     "Makes `func (li)` for checking `all(fn(x) for x in li)`.";
-    return lambda li: isinstance(li, list) and all(map(fn, li));
+    return lambda li: (
+        isinstance(li, list) and
+        len(li) >= minLen    and
+        all(map(fn, li))    #and
+    );
+
+############################################################
+# DICT VALIDATION: #########################################
+############################################################
 
 class BadSchemaError (ValueError): pass;
 class ValidationError (ValueError): pass;
