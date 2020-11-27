@@ -18,26 +18,26 @@ trademarks, service marks, brand names or logos of Polydojo, Inc.
 import functools;
 import re;
 
-__version__ = "0.0.1-preview";  # Req'd by flit.
+__version__ = "0.0.1";  # Req'd by flit.
 
 identity = lambda x: x;
 truthy = lambda x: bool(x);
 falsy = lambda x: not x;
-nonely = lambda x: x is None;   # <-- TODO: Rename?
+noneIs = lambda x: x is None;
 
 def typeIs (typ):
-    "Makes `func (x)` for checking if `type(x) is typ`.";
+    "Makes `func (x)` for checking `type(x) is typ`.";
     return lambda x: type(x) is typ;
 
-def instanceOf (*typTup):
-    "Makes `func (x)` for checking if `isinstance(x, typTup)`.";
-    return lambda x: isinstance(x, typTup);
+def instanceOf (*typs):
+    "Makes `func (x)` for checking `isinstance(x, typs)`.";
+    return lambda x: isinstance(x, typs);
 
-def typeIn (*typTup):
-    "Makes `func (x)` for checking if `type(x) in typTup`.";
-    return lambda x: type(x) in typTup;
+def typeIn (*typs):
+    "Makes `func (x)` for checking `type(x) in typs`.";
+    return lambda x: type(x) in typs;
 
-def reMatch (pattern):
+def patternIs (pattern):
     "Makes `func (s)` for checking `s` against `pattern`.";
     if type(pattern) is str:
         return lambda s: re.match(pattern, s);
@@ -56,7 +56,7 @@ def anyOf (*fns):
     return lambda x: any(map(lambda fn: fn(x), fns));
 
 def listOf (fn):
-    "Makes `func (li)` for checking `all(fn(x) for x in li`).";
+    "Makes `func (li)` for checking `all(fn(x) for x in li)`.";
     return lambda li: isinstance(li, list) and all(map(fn, li));
 
 class BadSchemaError (ValueError): pass;
@@ -74,7 +74,7 @@ def _validateSchemaItself (schema):
     return True;
 
 def dictOf (schema, extraKeysOk=False):
-    "Makes `func (d)` for _validating_ `d` agaisnt `schema`.";
+    "Makes `func (d)` for VALIDATING `d` against `schema`.";
     assert _validateSchemaItself(schema);
     def validateFn (d):
         if not isinstance(d, dict):
